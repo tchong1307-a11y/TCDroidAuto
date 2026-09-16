@@ -109,6 +109,8 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.androidx.car.app)
     implementation(libs.zxing.core)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.google.oss.licenses)
 
     testImplementation(libs.junit)
