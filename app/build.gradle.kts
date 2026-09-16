@@ -14,11 +14,11 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.kododake.aabrowser"
+        applicationId = "com.tcdroidauto.app"
         minSdk = 35
         targetSdk = 37
-        versionCode = 8
-        versionName = "2.2"
+        versionCode = 1
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -60,7 +60,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -69,7 +68,7 @@ android {
     androidComponents {
         onVariants { variant ->
             val vNameStr = android.defaultConfig.versionName ?: "unknown"
-            val appNameStr = "AABrowser"
+            val appNameStr = "TCDroidAuto"
             val isDebug = variant.buildType == "debug"
             val debugSuffixStr = if (isDebug) "_debug" else ""
 
@@ -110,11 +109,7 @@ dependencies {
     implementation(libs.google.material)
     implementation(libs.androidx.car.app)
     implementation(libs.zxing.core)
-
-    implementation(libs.okhttp)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.google.oss.licenses)
-    implementation("com.github.woheller69:FreeDroidWarn:V1.+")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
