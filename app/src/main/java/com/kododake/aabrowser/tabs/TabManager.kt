@@ -7,8 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.webkit.WebViewCompat
-import androidx.webkit.WebViewFeature
 import com.kododake.aabrowser.R
 import com.kododake.aabrowser.bookmarks.BookmarkManager
 import com.kododake.aabrowser.data.BrowserPreferences
@@ -97,10 +95,10 @@ class TabManager(
         shouldForceSessionRestore: Boolean
     ) {
         setupRecyclerView()
-        
+
         val shouldRestoreSavedTabs = shouldForceSessionRestore ||
             (intentUrl == null && homePageUrl.isNullOrBlank() && restoreTabsOnLaunch)
-            
+
         val savedTabs = if (shouldRestoreSavedTabs) {
             BrowserPreferences.getSavedTabSession(activity)
         } else {
@@ -165,7 +163,7 @@ class TabManager(
         val speechBridge = com.kododake.aabrowser.web.SpeechRecognitionBridge(tabView) { pageUrl ->
             callbacks.requestSpeechRecognitionMicrophoneAccess(tab.id, pageUrl)
         }
-        
+
         tab = BrowserTab(
             id = nextTabId++,
             webView = tabView,
@@ -174,9 +172,16 @@ class TabManager(
             currentTitle = initialTitle
         )
 
-        configureWebView(tabView, callbacks.buildBrowserCallbacks(tab), BrowserPreferences.shouldUseDesktopMode(activity), BrowserPreferences.getUserAgentProfile(activity), BrowserPreferences.isBetaForceDarkPagesEnabled(activity))
-        setupWebMessageListener(tabView, speechBridge)
-        setupJavascriptInterface(tabView)
+        configureWebView(
+            tabView,
+            callbacks.buildBrowserCallbacks(tab),
+            BrowserPreferences.shouldUseDesktopMode(activity),
+            BrowserPreferences.getUserAgentProfile(activity),
+            BrowserPreferences.isBetaForceDarkPagesEnabled(activity)
+        )
+
+        // TCDroidAuto intentionally exposes no native JavaScript interfaces or
+        // WebMessage bridge to web content. Normal page JavaScript remains enabled.
 
         tabView.setOnTouchListener { _, _ ->
             callbacks.showMenuButtonTemporarily()
@@ -194,28 +199,6 @@ class TabManager(
             refreshTabs()
         }
         return tab
-    }
-
-    private fun setupWebMessageListener(webView: android.webkit.WebView, speechBridge: com.kododake.aabrowser.web.SpeechRecognitionBridge) {
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-            WebViewCompat.addWebMessageListener(webView, com.kododake.aabrowser.web.SpeechRecognitionBridge.BRIDGE_OBJECT_NAME, setOf("*")) { webViewInstance, message, sourceOrigin, isMainFrame, _ ->
-                speechBridge.handleWebMessage(message, sourceOrigin, isMainFrame, webViewInstance.url)
-            }
-        }
-    }
-
-    private fun setupJavascriptInterface(webView: android.webkit.WebView) {
-        webView.addJavascriptInterface(object {
-            @android.webkit.JavascriptInterface
-            fun openExternal(url: String) {
-                activity.runOnUiThread {
-                    val safeUri = callbacks.sanitizeJsExternalUrl(webView, url)
-                    if (safeUri != null) {
-                        callbacks.openUriExternally(safeUri)
-                    }
-                }
-            }
-        }, "Android")
     }
 
     fun createNewTab(activate: Boolean): BrowserTab? {
@@ -244,7 +227,7 @@ class TabManager(
             binding.addressEdit.setText(selectedTab.currentUrl)
             binding.addressEdit.setSelection(selectedTab.currentUrl.length)
         }
-        
+
         callbacks.syncAddressFieldsFrom(binding.addressEdit)
         callbacks.updateAddressClearButtons()
 
@@ -275,7 +258,7 @@ class TabManager(
 
         val removedTab = browserTabs.removeAt(index)
         onSpeechTabClosed()
-        
+
         removedTab.speechBridge.destroy()
         binding.webViewContainer.removeView(removedTab.webView)
         removedTab.webView.releaseCompletely()
