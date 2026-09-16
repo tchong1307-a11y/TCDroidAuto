@@ -41,7 +41,7 @@ data class BrowserCallbacks(
     val onEnterFullscreen: (View, WebChromeClient.CustomViewCallback) -> Unit = { _, _ -> },
     val onExitFullscreen: () -> Unit = {},
     val onPermissionRequest: (PermissionRequest) -> Unit = { it.deny() },
-    val onGeolocationPermissionRequest: (String?, android.webkit.GeolocationPermissions.Callback?) -> Unit = { _, callback -> callback?.invoke(null, false, false) }
+    val onGeolocationPermissionRequest: (String?, android.webkit.GeolocationPermissions.Callback?) -> Unit = { origin, callback -> callback?.invoke(origin, false, false) }
 )
 
 fun configureWebView(
@@ -67,16 +67,15 @@ fun configureWebView(
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             javaScriptCanOpenWindowsAutomatically = true
-
             setSupportMultipleWindows(true)
 
             setSupportZoom(true)
             builtInZoomControls = true
             displayZoomControls = false
             cacheMode = WebSettings.LOAD_DEFAULT
-            allowContentAccess = true
+            allowContentAccess = false
             allowFileAccess = false
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 safeBrowsingEnabled = true
@@ -94,23 +93,16 @@ fun configureWebView(
             it.setAcceptThirdPartyCookies(this, true)
         }
 
-        //setLayerType(View.LAYER_TYPE_HARDWARE, null)
-
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                val uri = request.url
-                if (handleCleartextIfNeeded(view, uri, callbacks, onPageStart = false)) {
-                    return true
-                }
-                return handleUri(view, uri)
+                return handleUri(request.url)
             }
 
-            private fun handleUri(view: WebView, uri: Uri?): Boolean {
-                if (uri == null) {
-                    return false
-                }
+            private fun handleUri(uri: Uri?): Boolean {
+                if (uri == null) return false
                 val scheme = uri.scheme?.lowercase()
-                if (scheme == null || scheme in setOf("http", "https", "about", "file", "data", "javascript")) {
+                if (scheme == "http") return true
+                if (scheme == null || scheme in setOf("https", "about", "file", "data", "javascript")) {
                     return false
                 }
                 return true
@@ -118,26 +110,14 @@ fun configureWebView(
 
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
-                val stringUrl = url
-                if (stringUrl == null) {
-                    return
-                }
-                val uri = Uri.parse(stringUrl)
-                val scheme = uri.scheme?.lowercase()
-
-                if (scheme == "http") {
-                    val allowedOnce = getTag(R.id.webview_allow_once_uri_tag) as? String
-                    if (allowedOnce == stringUrl) {
-                        setTag(R.id.webview_allow_once_uri_tag, null)
-                    } else if (handleCleartextIfNeeded(view, uri, callbacks, onPageStart = true)) {
-                        return
-                    }
+                val uri = url?.let(Uri::parse) ?: return
+                if (uri.scheme?.lowercase() == "http") {
+                    view.stopLoading()
                 }
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
                 super.onPageFinished(view, url)
-                view.evaluateJavascript(SpeechRecognitionBridge.POLYFILL_JS, null)
                 url?.let(callbacks.onUrlChange)
             }
 
@@ -241,26 +221,15 @@ fun configureWebView(
             }
 
             override fun onPermissionRequest(request: PermissionRequest?) {
-                if (request == null) {
-                    return
-                }
+                if (request == null) return
+                val protectedMedia = request.resources
+                    .filter { it == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
+                    .toTypedArray()
 
-                val allowed = setOf(
-                    PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID,
-                    PermissionRequest.RESOURCE_AUDIO_CAPTURE
-                )
-
-                val grantable = request.resources.filter { it in allowed }.toTypedArray()
-
-                if (grantable.isEmpty()) {
+                if (protectedMedia.isEmpty()) {
                     request.deny()
-                    return
-                }
-
-                if (PermissionRequest.RESOURCE_AUDIO_CAPTURE in grantable) {
-                    callbacks.onPermissionRequest(request)
                 } else {
-                    this@with.post { request.grant(grantable) }
+                    this@with.post { request.grant(protectedMedia) }
                 }
             }
 
@@ -268,7 +237,7 @@ fun configureWebView(
                 origin: String?,
                 callback: android.webkit.GeolocationPermissions.Callback?
             ) {
-                callbacks.onGeolocationPermissionRequest(origin, callback)
+                callback?.invoke(origin, false, false)
             }
 
             override fun onCreateWindow(
@@ -282,58 +251,10 @@ fun configureWebView(
         }
 
         setDownloadListener(DownloadListener { url, _, _, _, _ ->
-            val uri = url?.takeIf { it.isNotBlank() }?.toUri()
-            if (uri == null) {
-                return@DownloadListener
-            }
+            val uri = url?.takeIf { it.isNotBlank() }?.toUri() ?: return@DownloadListener
             callbacks.onShowDownloadPrompt(uri)
         })
     }
-}
-
-private fun handleCleartextIfNeeded(view: WebView, uri: Uri?, callbacks: BrowserCallbacks, onPageStart: Boolean = false): Boolean {
-    if (uri == null) {
-        return false
-    }
-    val scheme = uri.scheme?.lowercase()
-    if (scheme == null) {
-        return false
-    }
-    if (scheme != "http") {
-        return false
-    }
-
-    val allowedOnce = view.getTag(R.id.webview_allow_once_uri_tag) as? String
-    if (allowedOnce == uri.toString()) {
-        view.setTag(R.id.webview_allow_once_uri_tag, null)
-        return false
-    }
-
-    val host = uri.host?.lowercase()
-    if (com.kododake.aabrowser.data.BrowserPreferences.isHostAllowedCleartext(view.context, host)) {
-        return false
-    }
-    if (onPageStart) view.stopLoading()
-    val allowOnce = {
-        view.setTag(R.id.webview_allow_once_uri_tag, uri.toString())
-        view.post { view.loadUrl(uri.toString()) }
-        kotlin.Unit
-    }
-    val allowHost = {
-        view.context?.let { ctx ->
-            val hostToStore = uri.host?.lowercase()
-            if (hostToStore != null) com.kododake.aabrowser.data.BrowserPreferences.addAllowedCleartextHost(ctx, hostToStore)
-        }
-        view.setTag(R.id.webview_allow_once_uri_tag, uri.toString())
-        view.post { view.loadUrl(uri.toString()) }
-        kotlin.Unit
-    }
-    val cancel = {
-        if (onPageStart) view.stopLoading()
-        kotlin.Unit
-    }
-    callbacks.onCleartextNavigationRequested(uri, allowOnce, allowHost, cancel)
-    return true
 }
 
 fun WebView.updateDesktopMode(enable: Boolean, profile: UserAgentProfile) {
@@ -365,7 +286,7 @@ private fun WebView.applyBrowserIdentity(profile: UserAgentProfile, desktop: Boo
     settings.userAgentString = buildUserAgent(profile, desktop)
     settings.useWideViewPort = desktop
     settings.loadWithOverviewMode = desktop
-    
+
     val scalePercent = com.kododake.aabrowser.data.BrowserPreferences.getGlobalScalePercent(context)
     if (desktop) {
         setInitialScale(0)
@@ -374,7 +295,7 @@ private fun WebView.applyBrowserIdentity(profile: UserAgentProfile, desktop: Boo
         setInitialScale(mobileInitialScalePercent())
         settings.textZoom = 100
     }
-    
+
     applyUserAgentMetadata(profile, desktop)
 }
 
@@ -383,9 +304,7 @@ private fun WebView.mobileInitialScalePercent(): Int {
 }
 
 private fun WebView.applyUserAgentMetadata(profile: UserAgentProfile, desktop: Boolean) {
-    if (!WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) {
-        return
-    }
+    if (!WebViewFeature.isFeatureSupported(WebViewFeature.USER_AGENT_METADATA)) return
 
     val metadata = when (profile) {
         UserAgentProfile.ANDROID_CHROME -> buildChromeUserAgentMetadata(desktop)
@@ -449,7 +368,6 @@ private fun chromeBrandVersions(): List<UserAgentMetadata.BrandVersion> {
     )
 }
 
-private const val DESKTOP_INITIAL_SCALE_PERCENT = 100
 private const val DESKTOP_BITNESS = 64
 private const val CHROME_VERSION = "149.0.0.0"
 private const val ANDROID_PLATFORM_VERSION = "10.0.0"
