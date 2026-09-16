@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">AABrowser</string>
-    <string name="app_credit">AABrowser — by Kododake</string>
+    <string name="app_name">TCDroidAuto</string>
+    <string name="app_credit">TCDroidAuto — based on AABrowser by Kododake</string>
     <string name="author_name">Kododake</string>
-    <string name="menu_title">AABrowser</string>
+    <string name="menu_title">TCDroidAuto</string>
     <string name="menu_close">Close</string>
     <string name="menu_address_label">Address or search</string>
     
@@ -125,7 +125,7 @@
     <string name="settings_start_page_choose_background">Choose background</string>
     <string name="settings_start_page_clear_background">Clear background</string>
     <string name="settings_user_agent">User agent</string>
-    <string name="settings_user_agent_description">Choose how AABrowser identifies itself when loading pages.</string>
+    <string name="settings_user_agent_description">Choose how TCDroidAuto identifies itself when loading pages.</string>
     <string name="settings_user_agent_android">Android Chrome (default)</string>
     <string name="settings_user_agent_android_subtitle">Mobile: Android Chrome. Desktop mode uses Windows Chrome UA.</string>
     <string name="settings_user_agent_safari">Safari (iOS/macOS)</string>
@@ -150,23 +150,23 @@
     <string name="settings_clear_cookies_success_message">Stored cookies, local site data, and saved form data have been deleted from the browser.</string>
     
     <string name="settings_sponsors">Sponsors</string>
-    <string name="settings_sponsors_description">If you find this app useful, please consider supporting the project through GitHub Sponsors. It really fuels my motivation to keep improving it!</string>
+    <string name="settings_sponsors_description">Support the original AABrowser project and its contributors.</string>
     <string name="settings_sponsors_tab_github">GitHub Sponsors</string>
     <string name="settings_sponsors_open_github_sponsors">Open Sponsors Page</string>
     <string name="sponsors_copy">Copy</string>
     <string name="sponsors_copied">Address copied to clipboard</string>
 
     <string name="settings_sponsors_list">Sponsors</string>
-    <string name="settings_sponsors_list_description">A huge thank you to our amazing sponsors! Your support keeps this project running and upgrades my regular tea to premium Matcha or a bottomless pot of coffee! 🍵☕</string>
+    <string name="settings_sponsors_list_description">Supporters of the original AABrowser project.</string>
     <string name="sponsor_message_from_developer">From kododake: %1$s</string>
-    <string name="settings_sponsors_hide_title">Hide Sponsors? 🥺</string>
-    <string name="settings_sponsors_hide_message">This app is developed and maintained by kododake and our amazing contributors. Sponsoring helps kododake buy premium Matcha or coffee to fuel AABrowser\'s engine! If you hide them, kododake might code slower... 😭🍵\n\nAre you sure you want to hide the sponsors list?</string>
-    <string name="settings_sponsors_hide_keep">Keep Visible 🥺</string>
-    <string name="settings_sponsors_hide_confirm">Hide Anyway 😭</string>
+    <string name="settings_sponsors_hide_title">Hide sponsors?</string>
+    <string name="settings_sponsors_hide_message">Hide the original AABrowser sponsors list from the start page?</string>
+    <string name="settings_sponsors_hide_keep">Keep visible</string>
+    <string name="settings_sponsors_hide_confirm">Hide</string>
     <string name="settings_sponsors_hide_switch_title">Hide sponsors list on start page</string>
     
     <string name="settings_license">License</string>
-    <string name="settings_license_description">This application and its source code are licensed under the GNU General Public License version 3 (GPLv3). If you incorporate this application or use any of its code, you must include clear attribution to the repository: https://github.com/kododake/AABrowser</string>
+    <string name="settings_license_description">TCDroidAuto is based on AABrowser by Kododake and remains licensed under GNU GPL version 3. Original project: https://github.com/kododake/AABrowser</string>
     <string name="license_view_full">View Full License</string>
     
     <string name="open_source_title">Open-source libraries</string>
@@ -175,12 +175,12 @@
     <string name="open_source_licenses_title">Open-source Licenses</string>
     
     <string name="sponsors_title">Sponsors</string>
-    <string name="kododake_name">kododake (Lead)</string>
+    <string name="kododake_name">kododake (AABrowser lead)</string>
     <string name="menu_start_page">Start Page</string>
     <string name="menu_start_page_add_current">Add current page to start page</string>
     <string name="menu_home_page_set_current">Set current page as home page</string>
     <string name="start_page_title">Start Page</string>
-    <string name="start_page_headline">AABrowser</string>
+    <string name="start_page_headline">TCDroidAuto</string>
     <string name="start_page_subtitle">Quick access for the sites you use most.</string>
     <string name="start_page_card_title">Quick Links</string>
     <string name="start_page_card_subtitle">Pin up to six sites from the bookmarks menu.</string>
@@ -233,7 +233,7 @@
     <string name="media_notification_channel_description">Controls media playback in web pages</string>
     <string name="media_notification_content_text">Playing media in WebView</string>
     <string name="ssl_error_title">Security Warning</string>
-    <string name="ssl_error_message">AABrowser detected a problem with the security certificate of this website (%1$s).\n\nThis connection is not secure, and someone might be trying to intercept your data.</string>
+    <string name="ssl_error_message">TCDroidAuto detected a problem with the security certificate of this website (%1$s).\n\nThe connection has been blocked.</string>
     <string name="ssl_error_reason_prefix">Reason:</string>
     <string name="ssl_error_expired">The certificate has expired.</string>
     <string name="ssl_error_idmismatch">The certificate hostname does not match the website address.</string>
