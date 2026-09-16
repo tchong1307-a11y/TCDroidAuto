@@ -48,10 +48,9 @@ import com.kododake.aabrowser.web.BrowserCallbacks
 import com.kododake.aabrowser.web.releaseCompletely
 import com.kododake.aabrowser.web.updateDesktopMode
 import com.kododake.aabrowser.web.updateUserAgentProfile
-import org.woheller69.freeDroidWarn.R as FreeDroidWarnR
 
 /**
- * MainActivity serves as the central hub for the AABrowser application.
+ * MainActivity serves as the central hub for the TCDroidAuto application.
  * It coordinates various feature managers to provide a modular and maintainable browser.
  */
 class MainActivity : AppCompatActivity() {
@@ -60,45 +59,45 @@ class MainActivity : AppCompatActivity() {
     private val handler: Handler = Handler(Looper.getMainLooper())
     
     // Feature Managers
-    private val umamiTracker: UmamiTracker by lazy { 
-        UmamiTracker(applicationContext) 
+    private val umamiTracker: UmamiTracker by lazy {
+        UmamiTracker(applicationContext)
     }
     
-    private val themeManager: ThemeManager by lazy { 
-        ThemeManager(this, binding) 
+    private val themeManager: ThemeManager by lazy {
+        ThemeManager(this, binding)
     }
     
-    private val permissionManager: PermissionManager by lazy { 
-        PermissionManager(this) 
+    private val permissionManager: PermissionManager by lazy {
+        PermissionManager(this)
     }
     
-    private val bookmarkManager: BookmarkManager by lazy { 
-        BookmarkManager(this, binding, createBookmarkCallbacks()) 
+    private val bookmarkManager: BookmarkManager by lazy {
+        BookmarkManager(this, binding, createBookmarkCallbacks())
     }
     
-    private val startPageManager: StartPageManager by lazy { 
-        StartPageManager(this, binding, bookmarkManager, createStartPageCallbacks()) 
+    private val startPageManager: StartPageManager by lazy {
+        StartPageManager(this, binding, bookmarkManager, createStartPageCallbacks())
     }
     
-    private val tabManager: TabManager by lazy { 
-        TabManager(this, binding, bookmarkManager, createTabCallbacks()) 
+    private val tabManager: TabManager by lazy {
+        TabManager(this, binding, bookmarkManager, createTabCallbacks())
     }
     
-    private val uiManager: BrowserUIManager by lazy { 
-        BrowserUIManager(this, binding, tabManager, bookmarkManager, startPageManager, createUICallbacks()) 
+    private val uiManager: BrowserUIManager by lazy {
+        BrowserUIManager(this, binding, tabManager, bookmarkManager, startPageManager, createUICallbacks())
     }
     
-    private val navigationManager: NavigationManager by lazy { 
-        NavigationManager(this, binding, tabManager, permissionManager, startPageManager, uiManager, createNavigationCallbacks()) 
+    private val navigationManager: NavigationManager by lazy {
+        NavigationManager(this, binding, tabManager, permissionManager, startPageManager, uiManager, createNavigationCallbacks())
     }
     
-    private val overlayManager: OverlayManager by lazy { 
-        OverlayManager(this, binding, tabManager, bookmarkManager, startPageManager, uiManager, createOverlayCallbacks()) 
+    private val overlayManager: OverlayManager by lazy {
+        OverlayManager(this, binding, tabManager, bookmarkManager, startPageManager, uiManager, createOverlayCallbacks())
     }
 
-    private val isDebugBuild: Boolean by lazy { 
+    private val isDebugBuild: Boolean by lazy {
         val flags = applicationInfo.flags
-        (flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 
+        (flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     }
 
     // Application State
@@ -114,7 +113,7 @@ class MainActivity : AppCompatActivity() {
     private var currentUserAgentProfile: UserAgentProfile = UserAgentProfile.ANDROID_CHROME
     private var shouldForceSessionRestore: Boolean = false
     
-    var latestReleaseUrl: String = "https://github.com/kododake/AABrowser/releases"
+    var latestReleaseUrl: String = "https://github.com/tchong1307-a11y/TCDroidAuto/releases"
         private set
 
     // Proxy methods for MainActivitySetup
@@ -127,16 +126,16 @@ class MainActivity : AppCompatActivity() {
             return latestReleaseUrl
         }
     
-    fun updateNavigationButtonsProxy() { 
-        updateNavigationButtons() 
+    fun updateNavigationButtonsProxy() {
+        updateNavigationButtons()
     }
     
-    fun handleQuickActionButtonPressedProxy() { 
-        handleQuickActionButtonPressed() 
+    fun handleQuickActionButtonPressedProxy() {
+        handleQuickActionButtonPressed()
     }
     
-    fun showStartPageProxy() { 
-        showStartPage() 
+    fun showStartPageProxy() {
+        showStartPage()
     }
 
     // Result Launchers
@@ -181,9 +180,6 @@ class MainActivity : AppCompatActivity() {
         binding.menuVersion.text = "v${BuildConfig.VERSION_NAME}"
         setupUi()
         setupBackPressHandling()
-        
-        permissionManager.ensureNotificationPermissionIfNeeded(REQUEST_CODE_POST_NOTIFICATIONS)
-        showFreeDroidWarnOnUpgradeMaterial()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -402,14 +398,14 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun showStartPage() { 
+    private fun showStartPage() {
         startPageManager.showStartPage()
-        webView?.visibility = View.INVISIBLE 
+        webView?.visibility = View.INVISIBLE
     }
 
-    private fun hideStartPage() { 
+    private fun hideStartPage() {
         startPageManager.hideStartPage(currentPageTitle, currentUrl)
-        webView?.visibility = View.VISIBLE 
+        webView?.visibility = View.VISIBLE
     }
     
     private fun updateNavigationButtons() {
@@ -423,7 +419,7 @@ class MainActivity : AppCompatActivity() {
         binding.desktopSwitch.alpha = if (notStart) 1.0f else 0.6f
     }
 
-    private fun updateProgress(p: Int) { 
+    private fun updateProgress(p: Int) {
         binding.progressIndicator.isVisible = p in 1..99
         if (p in 1..99) {
             binding.progressIndicator.setProgressCompat(p, true)
@@ -441,9 +437,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun refreshHomePageMode() { 
+    private fun refreshHomePageMode() {
         binding.buttonStartPage.isVisible =
-            BrowserPreferences.getHomePageUrl(this).isNullOrBlank() 
+            BrowserPreferences.getHomePageUrl(this).isNullOrBlank()
     }
     
     private fun handleHomePagePreferenceChanged() {
@@ -485,28 +481,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showFreeDroidWarnOnUpgradeMaterial() {
-        val vCode = runCatching { packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt() }.getOrDefault(1)
-        val pref = getSharedPreferences("${packageName}_preferences", Context.MODE_PRIVATE)
-        if (vCode <= pref.getInt(FREE_DROID_WARN_VERSION_KEY, 0)) return
-        val view = layoutInflater.inflate(R.layout.dialog_free_droid_warn, null)
-        view.findViewById<android.widget.TextView>(R.id.free_droid_warn_title).text = getString(android.R.string.dialog_alert_title)
-        view.findViewById<android.widget.TextView>(R.id.free_droid_warn_message).text = getString(FreeDroidWarnR.string.dialog_Warning)
-        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
-            .setView(view)
-            .setNegativeButton(FreeDroidWarnR.string.dialog_more_info) { _, _ -> navigationManager.loadUrlFromIntent(KEEP_ANDROID_OPEN_URL) }
-            .setNeutralButton(FreeDroidWarnR.string.solution) { _, _ -> navigationManager.loadUrlFromIntent(FREE_DROID_WARN_SOLUTIONS_URL) }
-            .setPositiveButton(android.R.string.ok) { _, _ -> pref.edit().putInt(FREE_DROID_WARN_VERSION_KEY, vCode).apply() }
-            .create()
-        dialog.setCanceledOnTouchOutside(false)
-        dialog.show()
-        dialog.getButton(DialogInterface.BUTTON_NEUTRAL)?.setTextColor(themeManager.resolveThemeColor(androidx.appcompat.R.attr.colorError))
-    }
-
     private fun createBookmarkCallbacks() = object : BookmarkManager.BookmarkCallbacks {
-        override fun onNavigateToUrl(url: String) { 
+        override fun onNavigateToUrl(url: String) {
             navigationManager.loadUrlFromIntent(url)
-            uiManager.hideMenuOverlay() 
+            uiManager.hideMenuOverlay()
         }
         
         override fun onRefreshStartPage() {
@@ -543,9 +521,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createStartPageCallbacks() = object : StartPageManager.StartPageCallbacks {
-        override fun onNavigateToUrl(url: String) { 
+        override fun onNavigateToUrl(url: String) {
             navigationManager.loadUrlFromIntent(url)
-            uiManager.hideMenuOverlay() 
+            uiManager.hideMenuOverlay()
         }
         
         override fun onShowMenuOverlay() {
@@ -597,10 +575,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createTabCallbacks() = object : TabManager.TabCallbacks {
-        override fun onTabChanged(tab: BrowserTab) { 
+        override fun onTabChanged(tab: BrowserTab) {
             webView = tab.webView
             currentUrl = tab.currentUrl
-            currentPageTitle = tab.currentTitle 
+            currentPageTitle = tab.currentTitle
         }
         
         override fun buildBrowserCallbacks(tab: BrowserTab): BrowserCallbacks {
@@ -636,9 +614,9 @@ class MainActivity : AppCompatActivity() {
         }
         
         override fun requestSpeechRecognitionMicrophoneAccess(tabId: Long, pageUrl: String?) {
-            permissionManager.requestSpeechRecognitionMicrophoneAccess(tabId, pageUrl) { granted -> 
+            permissionManager.requestSpeechRecognitionMicrophoneAccess(tabId, pageUrl) { granted ->
                 val tab = tabManager.browserTabs.firstOrNull { it.id == tabId }
-                tab?.speechBridge?.onPermissionResult(granted) 
+                tab?.speechBridge?.onPermissionResult(granted)
             }
         }
         
