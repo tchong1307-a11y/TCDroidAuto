@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - hardening-v1
+      - post-baseline-cleanup
   workflow_dispatch:
 
 permissions:
